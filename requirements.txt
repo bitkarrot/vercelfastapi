@@ -1,2 +1,4 @@
-fastapi
-uvicorn
+uvicorn==0.13.4
+fastapi==0.70.0
+pypng==0.0.21
+pyqrcode==1.2.1
