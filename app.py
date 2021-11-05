@@ -17,46 +17,70 @@ def example(parameter: str):
 
 @app.get("/")
 def main():
+    """
+    redirect to front end site
+    """
     return {
         "message": "Hello my friend"
     }
 
-
-@app.get('/tip')
-def get_qrcode():
-    sept21pay = "LNURL1DP68GURN8GHJ7CNFW3EJUCNFW33K76TW9EHHYEEWDP4J7MRWW4EXCUP0V9CXJTMKXYHKCMN4WFKZ7VF42FKAHK"
-    qr = pyqrcode.create(sept21pay)
-    tip_file = 'images/qr_21.png'
-    qr.png(tip_file, scale=3, module_color=[0,0,0,128], background=[0xff, 0xff, 0xff])
-    return FileResponse(tip_file)
-
-
-@app.post("/send_image")
-async def send():
-    sept21pay = "LNURL1DP68GURN8GHJ7CNFW3EJUCNFW33K76TW9EHHYEEWDP4J7MRWW4EXCUP0V9CXJTMKXYHKCMN4WFKZ7VF42FKAHK"
-    qr = pyqrcode.create(sept21pay)
-    tip_file = 'images/qr_21.png'
-    qr.png(tip_file, scale=3, module_color=[0,0,0,128], background=[0xff, 0xff, 0xff])
-
-    image = BytesIO()   
-    qr.svg(image, scale=3)          # Do something here to create an image
-    # image.save(image, format='JPEG', quality=85)   # Save image to BytesIO
-    image.seek(0)                                # Return cursor to starting point
-    return StreamingResponse(image.read(), media_type="image/jpeg")
-
+@app.get('/qr/{addy}')
+def get_qrFromLN(addy: str):
+    """
+    this endpoint returns a QR PNG when given a Lightning Address
+    """
+    try:
+        if addy is not None:    
+            tip_file = 'images/qr_lnaddy.png'
+            # TODO: add method to get bolt11 from addy
+            bolt11 = "LNURL1DP68GURN8GHJ7CNFW3EJUCNFW33K76TW9EHHYEEWDP4J7MRWW4EXCUP0V9CXJTMKXYHKCMN4WFKZ7VF42FKAHK"
+            qr = pyqrcode.create(bolt11) 
+            qr.png(tip_file, scale=3, module_color=[0,0,0,128], background=[0xff, 0xff, 0xff])
+            return FileResponse(tip_file)
+        else: 
+            return {
+                "msg" : "Please send a valid Lightning Address"
+            }
+    except Exception as e: 
+        return { 
+            "msg" : "Not a valid Lightning Address. Sorry!"
+        }
 
 
 
-@app.get("/img")
+@app.get('/bolt11/{bolt11}')
+def get_qrfrombolt(bolt11: str):
+    """
+    this end point returns a QR PNG when given a bolt11 
+    """
+    # bolt11 = "LNURL1DP68GURN8GHJ7CNFW3EJUCNFW33K76TW9EHHYEEWDP4J7MRWW4EXCUP0V9CXJTMKXYHKCMN4WFKZ7VF42FKAHK"
+    try:
+        if bolt11 is not None:    
+            tip_file = 'images/qr_tip.png'
+            qr = pyqrcode.create(bolt11)
+            qr.png(tip_file, scale=3, module_color=[0,0,0,128], background=[0xff, 0xff, 0xff])
+            return FileResponse(tip_file)
+        else: 
+            return {
+                "msg" : "Please send a bolt 11"
+            }
+    except Exception as e: 
+        return { 
+            "msg" : "Not a valid Bolt11"
+        }
+
+
+@app.get("/img/{addy}")
 def get_img(): 
-    withdraw = "LNURL1DP68GURN8GHJ7CNFW3EJUCNFW33K76TW9EHHYEEWDP4J7AMFW35XGUNPWUHKZURF9AMRZTMVDE6HYMP02E485MMDG9FHWWZ529H5X46CDF3XWDMFGEDZ742WW33X7AT6VECKUWP5D92Y56RFXEJHJURR7WD75N"
-    paylink = "LNURL1DP68GURN8GHJ7CNFW3EJUCNFW33K76TW9EHHYEEWDP4J7MRWW4EXCUP0V9CXJTMKXYHKCMN4WFKZ7VF42FKAHK"
-    qr = pyqrcode.create(withdraw)
-    qr.png('images/qr_withdraw.png', scale=3, module_color=[0,0,0,128], background=[0xff, 0xff, 0xff])
-
-    qr = pyqrcode.create(paylink)
-    qr.png('images/qr_paylink.png', scale=3, module_color=[0,0,0,128], background=[0xff, 0xff, 0xff])
-
+    """
+    this endpoint returns QR images as part of json response
+    in SVG xml format. 
+    """
+    # TODO: add method to get Bolt11 from addy
+    bolt11 = "LNURL1DP68GURN8GHJ7CNFW3EJUCNFW33K76TW9EHHYEEWDP4J7MRWW4EXCUP0V9CXJTMKXYHKCMN4WFKZ7VF42FKAHK"
+    img_file = 'images/qr_paylink.png'
+    qr = pyqrcode.create(bolt11)
+    qr.png(img_file, scale=3, module_color=[0,0,0,128], background=[0xff, 0xff, 0xff])
 
     stream = BytesIO()
     qr.svg(stream, scale=3)
