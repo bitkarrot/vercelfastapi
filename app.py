@@ -22,14 +22,28 @@ app = FastAPI(
     },
 )
 
-"""
 @app.get("/")
 def main():
     # redirect to front end site
     return {
         "message": "Hello my friend"
     }
-"""
+
+@app.get("/example/{parameter}")
+def example(parameter: str):
+    return {
+        "parameter": parameter,
+        "datetime": datetime.datetime.now().time()
+    }
+
+@app.get('/tip')
+def get_qrcode():
+    sept21pay = "LNURL1DP68GURN8GHJ7CNFW3EJUCNFW33K76TW9EHHYEEWDP4J7MRWW4EXCUP0V9CXJTMKXYHKCMN4WFKZ7VF42FKAHK"
+    qr = pyqrcode.create(sept21pay)
+    tip_file = '/tmp/qr_21.png'
+    qr.png(tip_file, scale=3, module_color=[0,0,0,128], background=[0xff, 0xff, 0xff])
+    return FileResponse(tip_file)
+
 
 @app.get('/qr/{addy}')
 def get_QR_Code_From_LN_Address(addy: str):
@@ -39,7 +53,7 @@ def get_QR_Code_From_LN_Address(addy: str):
     """
     try:
         if addy is not None:    
-            tip_file = 'images/qr_lnaddy.png'
+            tip_file = '/tmp/qr_lnaddy.png'
             # TODO: add method to get bolt11 from addy
             bolt11 = "LNURL1DP68GURN8GHJ7CNFW3EJUCNFW33K76TW9EHHYEEWDP4J7MRWW4EXCUP0V9CXJTMKXYHKCMN4WFKZ7VF42FKAHK"
             qr = pyqrcode.create(bolt11) 
@@ -62,7 +76,7 @@ def get_qr_via_bolt11(bolt11: str):
     this end point returns a QR PNG when given a bolt11 
     example use: /bolt11/LNURL.......
     """
-    # bolt11 = "LNURL1DP68GURN8GHJ7CNFW3EJUCNFW33K76TW9EHHYEEWDP4J7MRWW4EXCUP0V9CXJTMKXYHKCMN4WFKZ7VF42FKAHK"
+    bolt11 = "LNURL1DP68GURN8GHJ7CNFW3EJUCNFW33K76TW9EHHYEEWDP4J7MRWW4EXCUP0V9CXJTMKXYHKCMN4WFKZ7VF42FKAHK"
     try:
         tip_file = 'images/qr_tip.png'
         if bolt11 is not None:    
@@ -90,10 +104,8 @@ def get_svg_img_from_LN_address(lightning_address):
     # TODO: add method to get Bolt11 from addy
     print(lightning_address)
     bolt11 = "LNURL1DP68GURN8GHJ7CNFW3EJUCNFW33K76TW9EHHYEEWDP4J7MRWW4EXCUP0V9CXJTMKXYHKCMN4WFKZ7VF42FKAHK"
-    img_file = 'images/qr_paylink.png'
     qr = pyqrcode.create(bolt11)
-    qr.png(img_file, scale=3, module_color=[0,0,0,128], background=[0xff, 0xff, 0xff])
-
+    
     stream = BytesIO()
     qr.svg(stream, scale=3)
 
