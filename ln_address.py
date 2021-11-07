@@ -1,7 +1,7 @@
 import json
-import os
 import logging
-import asyncio
+#import os
+#import asyncio
 
 from aiohttp.client import ClientSession
 from utils import get_url, post_url, post_jurl
@@ -156,7 +156,7 @@ class LNAddress:
             return e
 
 
-
+'''
 async def main():
     email = 'bitkarrot@bitcoin.org.hk'
     # email = 'foo@example.com'
@@ -187,12 +187,11 @@ async def main():
         print('paid status:', status, " image : ", image)
 
         # pay invoice - ok works
-        '''
         result = await lnaddy.pay_invoice(bolt11)
         if result is dict:
             print('pay invoice status: ', result)
             payment_hash = result['payment_hash']
-        '''
+
         # pay invoice status:  {'checking_id': '2694f658138dd49e649505df1a3aaecc30861eaea3a41df82256ecec854f3df3', 'payment_hash': '2694f658138dd49e649505df1a3aaecc30861eaea3a41df82256ecec854f3df3'}
 
         # check payment hash status - ok works, got payment hash from paid invoice status
@@ -206,3 +205,4 @@ async def main():
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
 
+'''
