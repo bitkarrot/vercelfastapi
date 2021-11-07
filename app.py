@@ -57,17 +57,15 @@ async def get_bolt(email, amount):
 
 @app.get("/")
 def main():
-    path = os.getcwd()
-    imagepath = path + "./images/bitkarrot.jpeg"
     html_content = """
     <html>
         <head>
             <title>LNaddy.com</title>
-              <link rel="icon" type="image/x-icon" href="./static/images/favicon.ico">
+              <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
         </head>
         <body><div align="center">
             <h1> Lightning Addy</h1>
-            <img src=\"./static/images/bitkarrot.jpeg\">
+            <img src="/static/images/bitkarrot.jpeg">
             </div>
         </body>
     </html>
