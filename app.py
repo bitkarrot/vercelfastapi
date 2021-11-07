@@ -31,6 +31,7 @@ def main():
 
 @app.get("/example/{parameter}")
 def example(parameter: str):
+    parameter = "a123"
     return {
         "parameter": parameter,
         "datetime": datetime.datetime.now().time()

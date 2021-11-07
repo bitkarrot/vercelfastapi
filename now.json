@@ -4,6 +4,11 @@
     "builds": [{ "src": "app.py", "use": "@now/python" }],
     "routes": [
         { "src": "/", "dest": "app.py" },
+        { "src": "/example/(.*)", "dest": "app.py" },
+        { "src": "/tip/(.*)", "dest": "app.py" },
+        { "src": "/qr/(.*)", "dest": "app.py" },
+        { "src": "/bolt11/(.*)", "dest": "app.py" },
+        { "src": "/img/(.*)", "dest": "app.py" },
         { "src": "/docs", "dest": "app.py" },
         { "src": "/openapi.json", "dest": "app.py" }
     ]
