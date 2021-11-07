@@ -37,8 +37,9 @@ app = FastAPI(
     },
 )
 
-def configure_static(app):  #new
+def configure_static(app):
     app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 configure_static(app) 
 
@@ -87,7 +88,6 @@ async def get_Tip_QR_Code(lightning_address: str):
     try:
         print(lightning_address)
         bolt11 = await get_bolt(lightning_address, None)
-        # bolt11 = "LNURL1DP68GURN8GHJ7CNFW3EJUCNFW33K76TW9EHHYEEWDP4J7MRWW4EXCUP0V9CXJTMKXYHKCMN4WFKZ7VF42FKAHK"
         qr = pyqrcode.create(bolt11)
         tip_file = '/tmp/qr_tip.png'
         qr.png(tip_file, scale=3, module_color=[0,0,0,128], background=[0xff, 0xff, 0xff])
@@ -109,7 +109,6 @@ async def get_QR_Code_From_LN_Address(lightning_address: str):
         if lightning_address is not None:    
             tip_file = '/tmp/qr_lnaddy.png'
             bolt11 = await get_bolt(lightning_address, None)
-            # bolt11 = "LNURL1DP68GURN8GHJ7CNFW3EJUCNFW33K76TW9EHHYEEWDP4J7MRWW4EXCUP0V9CXJTMKXYHKCMN4WFKZ7VF42FKAHK"
             qr = pyqrcode.create(bolt11) 
             qr.png(tip_file, scale=3, module_color=[0,0,0,128], background=[0xff, 0xff, 0xff])
             return FileResponse(tip_file)
@@ -124,28 +123,26 @@ async def get_QR_Code_From_LN_Address(lightning_address: str):
 
 
 
-
-@app.get('/bolt11/{bolt11}')
-async def get_qr_via_bolt11(bolt11: str):
+@app.get('/bolt11/{lightning_address}')
+async def get_qr_via_bolt11(lightning_address: str):
     """
-    this end point returns a QR PNG when given a bolt11 
-    example use: /bolt11/LNURL.......
+    this end point returns a bolt11 when given a lightning address as parameter
+    example use: /bolt11/user@domain.com.
     """
-    # bolt11 = "LNURL1DP68GURN8GHJ7CNFW3EJUCNFW33K76TW9EHHYEEWDP4J7MRWW4EXCUP0V9CXJTMKXYHKCMN4WFKZ7VF42FKAHK"
     try:
-        tip_file = '/tmp/qr_tip.png'
-        if bolt11 is not None:
+        if lightning_address is not None:
+            bolt11 = await get_bolt(lightning_address, None)
             # TODO >>>>> check if bolt11 is valid
-            qr = pyqrcode.create(bolt11)
-            qr.png(tip_file, scale=3, module_color=[0,0,0,128], background=[0xff, 0xff, 0xff])
-            return FileResponse(tip_file)
+            return {
+                "bolt11" : bolt11
+            }
         else: 
             return {
-                "msg" : "Please send a bolt 11"
+                "msg" : "Please send give a lightning address"
             }
     except Exception as e:
         return { 
-            "msg" : "Not a valid Bolt11"
+            "msg" : "Not a valid Lightning Address"
         }
 
 
