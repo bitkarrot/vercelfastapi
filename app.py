@@ -69,7 +69,6 @@ def get_QR_Code_From_LN_Address(addy: str):
         }
 
 
-
 @app.get('/bolt11/{bolt11}')
 def get_qr_via_bolt11(bolt11: str):
     """
@@ -78,9 +77,8 @@ def get_qr_via_bolt11(bolt11: str):
     """
     bolt11 = "LNURL1DP68GURN8GHJ7CNFW3EJUCNFW33K76TW9EHHYEEWDP4J7MRWW4EXCUP0V9CXJTMKXYHKCMN4WFKZ7VF42FKAHK"
     try:
-        tip_file = 'images/qr_tip.png'
-        if bolt11 is not None:    
-
+        tip_file = '/tmp/qr_tip.png'
+        if bolt11 is not None:
             # check if bolt11 is valid
             qr = pyqrcode.create(bolt11)
             qr.png(tip_file, scale=3, module_color=[0,0,0,128], background=[0xff, 0xff, 0xff])
