@@ -5,8 +5,8 @@ from ln_address import LNAddress
 import logging
 
 ###################################
-logging.basicConfig(filename='test_lnaddress.log', level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-logging.getLogger("testlnaddress").setLevel(level=logging.WARNING)
+logging.basicConfig(filename='lnaddress.log', level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.getLogger("lnaddress").setLevel(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 ###################################
 
