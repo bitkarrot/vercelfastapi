@@ -34,19 +34,19 @@ async def main():
         logging.info(bolt11)
  
         payhash = await lnaddy.get_payhash(bolt11)
-        print(payhash)
+        logging.info(payhash)
 
         status, image = await lnaddy.check_invoice(payhash)
-        print('paid status:', status, " image : ", image)
+        logging.info('paid status:', status, " image : ", image)
 
         # pay invoice 
         result = await lnaddy.pay_invoice(bolt11)
         if result is dict:
-            print('pay invoice status: ', result)
+            logging.info('pay invoice status: ', result)
             payment_hash = result['payment_hash']
             # check payment hash status -
             status, image = await lnaddy.check_invoice(payment_hash)
-            print('paid status:', status, " image : ", image)
+            logging.info('paid status:', status, " image : ", image)
         
 
 loop = asyncio.get_event_loop()
