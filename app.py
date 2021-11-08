@@ -1,9 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles 
+from fastapi.responses import RedirectResponse
 
-import datetime
 import uvicorn
 import os
 from ln_address import LNAddress
@@ -11,10 +9,19 @@ from aiohttp.client import ClientSession
 
 import pyqrcode
 from io import BytesIO
+import logging
+
+###################################
+logging.basicConfig(filename='api.log', level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.getLogger("app").setLevel(level=logging.WARNING)
+logger = logging.getLogger(__name__)
+###################################
+
 
 description = " API for getting QR codes and Bolt11 Invoices from Lightning Addresses"
+title = "sendsats.to"
 
-# Get environment variables
+# Get environment variables if using LNBits as backend
 invoice_key = os.getenv('INVOICE_KEY')
 admin_key = os.getenv('ADMIN_KEY')
 base_url =  os.getenv('BASE_URL') 
@@ -24,12 +31,12 @@ config = { 'invoice_key': invoice_key,
             'base_url': base_url }
 
 app = FastAPI(
-    title="LNaddy.com",
+    title=title,
     description=description,
     version="0.0.1",
     contact={
         "name": "bitkarrot",
-        "url": "http://github.com/bitkarrot/lnaddy",
+        "url": "http://github.com/bitkarrot",
     },
     license_info={
         "name": "Apache 2.0",
@@ -37,57 +44,33 @@ app = FastAPI(
     },
 )
 
-def configure_static(app):
-    app.mount("/static", StaticFiles(directory="static"), name="static")
-
-
-configure_static(app) 
-
-
 async def get_bolt(email, amount):
     try: 
         async with ClientSession() as session:
             lnaddy = LNAddress(config, session)
             bolt11 = await lnaddy.get_bolt11(email, amount)
-            print(bolt11)
+            logging.info(bolt11)
             return bolt11
     except Exception as e: 
-        print(e)
+        logging.error(e)
         return None
 
 
 @app.get("/")
 def main():
-    html_content = """
-    <html>
-        <head>
-            <title>LNaddy.com</title>
-              <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
-        </head>
-        <body><div align="center">
-            <h1> Lightning Addy</h1>
-            <img src="/static/images/bitkarrot.jpeg">
-            </div>
-        </body>
-    </html>
+    return RedirectResponse("/docs")
+
+
+@app.get('/tip/{lightning_address}/amt/{tip_amount}')
+async def get_Tip_QR_Code(lightning_address: str, tip_amount: str):
     """
-    return HTMLResponse(content=html_content, status_code=200)
-    # redirect to front end site
+    this endpoint returns a QR PNG image when given a Lightning Address and tip amount.
+    example use: /tip/user@domain.com/amt/100
+    """
 
-
-@app.get("/example/{parameter}")
-def example(parameter: str):
-    return {
-        "parameter": parameter,
-        "datetime": datetime.datetime.now().time()
-    }
-
-
-@app.get('/tip/{lightning_address}')
-async def get_Tip_QR_Code(lightning_address: str):
     try:
-        print(lightning_address)
-        bolt11 = await get_bolt(lightning_address, None)
+        logging.info("LN Address", lightning_address, "tip amount: ", tip_amount)
+        bolt11 = await get_bolt(lightning_address, int(tip_amount))
         qr = pyqrcode.create(bolt11)
         tip_file = '/tmp/qr_tip.png'
         qr.png(tip_file, scale=3, module_color=[0,0,0,128], background=[0xff, 0xff, 0xff])
@@ -126,8 +109,8 @@ async def get_QR_Code_From_LN_Address(lightning_address: str):
 @app.get('/bolt11/{lightning_address}')
 async def get_qr_via_bolt11(lightning_address: str):
     """
-    this end point returns a bolt11 when given a lightning address as parameter
-    example use: /bolt11/user@domain.com.
+    this end point returns a bolt11 Invoice when given a lightning address as parameter
+    example use: /bolt11/user@domain.com 
     """
     try:
         if lightning_address is not None:
@@ -149,12 +132,11 @@ async def get_qr_via_bolt11(lightning_address: str):
 @app.get("/img/{lightning_address}")
 async def get_svg_img_from_LN_address(lightning_address): 
     """
-    this endpoint returns image  in SVG xml format  as part of json response
+    this endpoint returns image in SVG - XML format  as part of json response
     example use: /img/user@domain.com
     """
     try: 
-        print(lightning_address)
-        #bolt11 = "LNURL1DP68GURN8GHJ7CNFW3EJUCNFW33K76TW9EHHYEEWDP4J7MRWW4EXCUP0V9CXJTMKXYHKCMN4WFKZ7VF42FKAHK"
+        logging.info(lightning_address)
         bolt11 = await get_bolt(lightning_address, None)
         qr = pyqrcode.create(bolt11)
         
@@ -172,14 +154,12 @@ async def get_svg_img_from_LN_address(lightning_address):
                 },
         )
     except Exception as e: 
-        print(e)
+        logging.error(e)
         return { 
             "msg" : "Not a valid Lightning Address"
         }
 
 
-
-
-# not for deploy on vercel
+# for local testing - not for deploy on vercel
 if __name__ == "__main__":
   uvicorn.run("app:app", host="localhost", port=3000, reload=True)

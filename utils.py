@@ -1,11 +1,8 @@
-"""
- utils for aiohttp. See docs at 
- https://docs.aiohttp.org/en/stable/client_advanced.html
-
-"""
-
 import json
 
+"""
+ utils for aiohttp. 
+"""
 
 async def get_url(session, path, headers) -> str:
     """
