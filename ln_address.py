@@ -78,7 +78,6 @@ class LNAddress:
             purl = self.get_payurl(email)
             json_content = await get_url(session=self._session, path=purl, headers=self.headers())
             datablock = json.loads(json_content)
-            logging.info(str(datablock))
 
             lnurlpay = datablock["callback"]
             min_amount = datablock["minSendable"]

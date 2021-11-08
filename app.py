@@ -1,14 +1,14 @@
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.responses import RedirectResponse
-
 import uvicorn
-import os
+
 from ln_address import LNAddress
 from aiohttp.client import ClientSession
+from io import BytesIO
 
 import pyqrcode
-from io import BytesIO
+import os
 import logging
 
 ###################################
@@ -17,8 +17,13 @@ logging.getLogger("app").setLevel(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 ###################################
 
+content = [ 
+    " Example Use: <h1>  https://sendsats.to/me@mydomain.com </h1> ", 
+    " will return a scannable Lightning QR Code for any valid Lightning Address. <br><br> ",
+    " An API for getting QR codes and Bolt11 Invoices from Lightning Addresses. ", 
+    " Share anywhere; as a link for tips on a twitter profile, or via messenger apps."]
 
-description = " API for getting QR codes and Bolt11 Invoices from Lightning Addresses"
+description = ''.join(content)
 title = "sendsats.to"
 
 # Get environment variables if using LNBits as backend
@@ -33,18 +38,22 @@ config = { 'invoice_key': invoice_key,
 app = FastAPI(
     title=title,
     description=description,
-    version="0.0.1",
+    version="0.0.1 alpha",
     contact={
         "name": "bitkarrot",
-        "url": "http://github.com/bitkarrot",
+        "url": "http://github.com/bitkarrot/sendsats",
     },
     license_info={
-        "name": "Apache 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
+        "name": "MIT License",
+        "url": "https://mit-license.org/",
     },
 )
 
 async def get_bolt(email, amount):
+    """
+        get bolt from ln addy email, amount
+        returns bolt11
+    """
     try: 
         async with ClientSession() as session:
             lnaddy = LNAddress(config, session)
@@ -56,11 +65,6 @@ async def get_bolt(email, amount):
         return None
 
 
-@app.get("/")
-def main():
-    return RedirectResponse("/docs")
-
-
 @app.get('/tip/{lightning_address}/amt/{tip_amount}')
 async def get_Tip_QR_Code(lightning_address: str, tip_amount: str):
     """
@@ -70,6 +74,8 @@ async def get_Tip_QR_Code(lightning_address: str, tip_amount: str):
 
     try:
         logging.info("LN Address", lightning_address, "tip amount: ", tip_amount)
+        print("LN Address", lightning_address, "tip amount: ", tip_amount)
+
         bolt11 = await get_bolt(lightning_address, int(tip_amount))
         qr = pyqrcode.create(bolt11)
         tip_file = '/tmp/qr_tip.png'
@@ -79,7 +85,6 @@ async def get_Tip_QR_Code(lightning_address: str, tip_amount: str):
         return { 
             "msg" : "Not a valid tipping Address. Sorry!"
         }
-
 
 
 @app.get('/qr/{lightning_address}')
@@ -129,11 +134,11 @@ async def get_qr_via_bolt11(lightning_address: str):
         }
 
 
-@app.get("/img/{lightning_address}")
+@app.get("/svg/{lightning_address}")
 async def get_svg_img_from_LN_address(lightning_address): 
     """
     this endpoint returns image in SVG - XML format  as part of json response
-    example use: /img/user@domain.com
+    example use: /svg/user@domain.com
     """
     try: 
         logging.info(lightning_address)
@@ -160,6 +165,34 @@ async def get_svg_img_from_LN_address(lightning_address):
         }
 
 
-# for local testing - not for deploy on vercel
+@app.get("/{lightning_address}")
+async def forward_to_QR_Endpoint(lightning_address):
+    """
+    this endpoint forwards the lightning address to the /qr endpoint
+    example use: /user@domain.com
+    """
+    try:
+        if '@' in lightning_address:
+            return await get_QR_Code_From_LN_Address(lightning_address)
+    except Exception as e:
+        logging.error(e) 
+#        return RedirectResponse("/docs")
+        return { 
+            "msg" : "Not a valid Lightning Address"
+        }
+
+
+@app.get("/")
+async def API_Docs():
+    """
+    Redirects queries from top level domain to API docs (this page)
+    """
+    return RedirectResponse("/docs")
+
+
+
+
+
+# for local testing
 if __name__ == "__main__":
   uvicorn.run("app:app", host="localhost", port=3000, reload=True)
